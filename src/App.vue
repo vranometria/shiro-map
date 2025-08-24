@@ -5,60 +5,13 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Casles } from './casles';
-
-let castleLayer: L.LayerGroup;
-
-const addCastleMarker = ({ name, lat, lon }) => {
-  const p = L.marker([parseFloat(lat), parseFloat(lon)]);
-  p.bindPopup(`<b>${name}</b><br>lat: ${lat}<br>lon: ${lon}`);
-  castleLayer.addLayer(p);
-}
+import { drawMap } from './proc';
 
 onMounted(async () => {
-  // --- ベース地図 ---
-  const mapDiv = L.map('map', {
-    center: [35.8, 140.2], // 下総あたり
-    zoom: 8,
-    preferCanvas: true
-  });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(mapDiv);
-
-  // --- 旧国ポリゴン（GeoJSONをローカル/自鯖から提供） ---
-  const kuniLayer = L.geoJSON(null, {
-    style: { color: '#d33', weight: 2, fillOpacity: 0.05 },
-    onEachFeature: (f, layer) => {
-      const n = f.properties?.name || f.properties?.旧国名 || f.properties?.title || '旧国';
-      layer.bindPopup(`<b>${n}</b>`);
-    }
-  }).addTo(mapDiv);
-
-  const res = await fetch('https://geoshape.ex.nii.ac.jp/kg/geojson/K19.geojson')
-  const geo = await res.json();
-  kuniLayer.addData(geo);
-  mapDiv.fitBounds(kuniLayer.getBounds(), { padding: [20, 20] });
-
-  // --- 城マーカー（CSV: name,lat,lon ヘッダでUTF-8） ---
-  castleLayer = L.featureGroup().addTo(mapDiv);
-  // レイヤ切替
-  L.control.layers(null, {
-    '旧国境界': kuniLayer,
-    '城マーカー': castleLayer
-  }, { collapsed: false }).addTo(mapDiv);
-
-  Casles.forEach( n => {
-    addCastleMarker(n);
-  });
+  await drawMap('map');
 });
-console.log("finish");
-
 </script>
-
-
 
 <style scoped>
 header {
@@ -71,8 +24,8 @@ header {
 }
 
 #map {
-  height: 500px;
-  width: 500px;
+  height: 1000px;
+  width: 1000px;
   margin: 0;
 }
 
