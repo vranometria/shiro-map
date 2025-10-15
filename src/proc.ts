@@ -10,7 +10,9 @@ export const drawMap = async (elementId: string) => {
   const kazusa = await drawKazusa(leafletMap);
   const awa = await drawAwa(leafletMap);
   const musashi = await drawMusashi(leafletMap);
-  const countries = [shimousa, kazusa, awa, musashi];
+  const echigo = await drawEchigo(leafletMap);
+  const mutsu = await drawMutsu(leafletMap);
+  const countries = [shimousa, kazusa, awa, musashi, echigo, mutsu];
   countries.forEach( n => {
     leafletMap.fitBounds(n.layer.getBounds(), { padding: [20, 20] });
   });
@@ -47,6 +49,8 @@ export const createMap = (elementId: string): Leaflet.Map => {
   return leafletMap;
 };
 
+// https://geoshape.ex.nii.ac.jp/kg/resource/
+
 const drawCountry = async (leafletMap: Leaflet.Map, url: string): Promise<Leaflet.GeoJSON> => {
   const res = await fetch(url);
   const geo = await res.json();
@@ -73,8 +77,21 @@ export const drawMusashi = async (leafletMap: Leaflet.Map): Promise<LayerInfo> =
   return { label: '武蔵', layer };
 };
 
+export const drawMutsu = async (leafletMap: Leaflet.Map): Promise<LayerInfo> => {
+  const layer = await drawCountry(leafletMap, 'https://geoshape.ex.nii.ac.jp/kg/geojson/K31.geojson');
+  return { label: '陸奥', layer };
+};
+
+export const drawEchigo = async (leafletMap: Leaflet.Map): Promise<LayerInfo> => {
+  const layer = await drawCountry(leafletMap, 'https://geoshape.ex.nii.ac.jp/kg/geojson/K39.geojson');
+  return { label: '越後', layer };
+};
+
 const addCastleMarker = (castleLayer, { name, lat, lon }) => {
   const p = Leaflet.marker([parseFloat(lat), parseFloat(lon)]);
-  p.bindPopup(`<b>${name}</b>`);
+  p.bindPopup(`<font size="6">${name}</font>`, {
+    autoClose: false,
+    closeOnClick: false,
+  });
   castleLayer.addLayer(p);
 }
